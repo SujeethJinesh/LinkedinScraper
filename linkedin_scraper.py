@@ -36,7 +36,7 @@ def login(driver, link, args):
 
 def get_people_list(driver):
     import ipdb; ipdb.set_trace()
-    return driver.find_element_by_xpath("//ul[@class='results-list ember-view']").find_elements_by_tag_name("li")
+    return driver.find_element_by_xpath("//ul[@class='results-list ember-view']/li*") #.find_elements_by_tag_name("li")
 
 
 def main():
@@ -53,12 +53,12 @@ def main():
     driver.get("https://www.linkedin.com/search/results/people/?facetCurrentCompany=%5B%223558%22%5D")
 
     # get list of people from page
-    people_list = get_people_list(driver)  # TODO: ERROR IS LIKELY HERE, I'm not quite sure why, but looping through profiles doesn't work as expected
+    people_list = get_people_list(driver)
     actions = ActionChains(driver)
 
     # open each member in a new tab
     for person_profile in people_list:
-        person_element = person_profile.find_element_by_xpath("//a[@class='search-result__result-link ember-view']")
+        person_element = person_profile.find_element_by_xpath("//a[@class='search-result__result-link ember-view']")  # Error is here, for some reason it won't click on the <a> tag attached to that class
         actions.key_down(Keys.COMMAND).click(person_element).key_up(Keys.CONTROL).perform()
         driver.switch_to.window(driver.window_handles[-1])
         time.sleep(5)
