@@ -1,5 +1,7 @@
 import argparse
 import time
+import pickle
+import sys
 
 from selenium import webdriver
 from scrape_linkedin import Scraper
@@ -69,6 +71,9 @@ def advance_page(driver):
 
 
 def main():
+    # pickling can't go more than certain sys requirements
+    sys.setrecursionlimit(100000)
+
     # parse args
     args = parse_args()
 
@@ -82,21 +87,23 @@ def main():
     driver.get("https://www.linkedin.com/search/results/people/?facetCurrentCompany=%5B%223558%22%5D")
 
     candidates = []
+    page = 1
     for page_number in range(2):  # TODO: Change this to ~1100 if scraping for all GT students
         try:
             candidates += scrape_page(driver)
+            with open("saves/save-page-{}.p".format(str(page)), "wb") as save_file:
+                pickle.dump(candidates, save_file)
+            page += 1
             advance_page(driver)
         except:
             # in case of failure, we'll at least recover some data.
-            file = open("data/error_recovered_data.txt", "w")
-            for candidate in candidates:
-                file.write("%s\n" % candidate.experiences)
+            with open("saves/save-page-{}-error.p".format(str(page)), "wb") as error_file:
+                pickle.dump(candidates, error_file)
             import ipdb;
             ipdb.set_trace()
 
-    file = open("data/successful_data.txt", "w")
-    for candidate in candidates:
-        file.write("%s\n" % candidate.experiences)
+    with open("saves/save-page-{}-complete.p".format(str(page)), "wb") as complete_file:
+        pickle.dump(candidates, complete_file)
 
     import ipdb;
     ipdb.set_trace()
